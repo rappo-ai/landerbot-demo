@@ -185,9 +185,9 @@ class RestInput(InputChannel):
                     message = await message_queue.get()
                     payload_json = [message]
                     payload_str = json.dumps(payload_json)
-                    await response.write(
-                        "data: " + payload_str + "\n\n"
-                    )
+                    logger.info("PAYLOAD for SSE")
+                    logger.info("data: " + payload_str + "\n\n")
+                    await response.write("data: " + payload_str + "\n\n")
 
             return response.stream(
                 streaming_fn,
