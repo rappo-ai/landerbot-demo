@@ -19,3 +19,8 @@ services:
       - mongo
 volumes:
   mongodb:
+networks:
+  default:
+    external:
+      name: landerbot-admin_default
+      

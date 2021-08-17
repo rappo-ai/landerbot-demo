@@ -19,7 +19,6 @@ from telebot.types import (
 )
 from typing import Dict, Text, Any, List, Optional, Callable, Awaitable
 
-5
 from rasa.core.channels.channel import InputChannel, UserMessage, OutputChannel
 from rasa.shared.constants import INTENT_MESSAGE_PREFIX
 from rasa.shared.core.constants import USER_INTENT_RESTART

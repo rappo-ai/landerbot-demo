@@ -3,7 +3,7 @@
 export $(egrep -v '^#' /app/.env | xargs)
 
 if [ -z "$TELEGRAM_BOT_TOKEN" ]; then
-echo "rest:
+echo "connectors.rest.RestInput:
     " > /app/dataset/credentials.yml;
 else
 if [ -z "$HOST_URL" ]; then
