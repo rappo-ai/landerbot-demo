@@ -10,7 +10,7 @@ def is_livechat_enabled(user_id):
     response_json = {}
     try:
         url = get_livechat_admin_url("/livechat/enabled")
-        response = requests.get(url, params={"user_id": user_id}, timeout=1)
+        response = requests.get(url, params={"user_id": user_id}, timeout=5)
         response_json = response.json()
     except Exception as e:
         logger.error(e)
@@ -23,7 +23,7 @@ def post_livechat_message(user_id, message_text):
     try:
         url = get_livechat_admin_url("/livechat/message")
         response = requests.post(
-            url, json={"sender": user_id, "text": message_text}, timeout=1
+            url, json={"sender": user_id, "text": message_text}, timeout=5
         )
         response_json = response.json()
     except Exception as e:
