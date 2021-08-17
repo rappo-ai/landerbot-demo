@@ -8,7 +8,7 @@ from rasa.__main__ import main
 if __name__ == "__main__":
     dir = os.path.dirname(os.path.abspath(__file__))
 
-    if not os.environ.get("HOST_URL"):
+    if os.environ.get("TELEGRAM_BOT_TOKEN") and not os.environ.get("HOST_URL"):
         print("Starting ngrok")
         subprocess.call(os.path.join(dir, "./start-ngrok.sh"))
 
