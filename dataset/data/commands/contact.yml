@@ -1,0 +1,12 @@
+version: "2.0"
+
+intents:
+  - contact
+
+nlu:
+  - intent: contact
+    metadata:
+      keyword_intent: true
+      match_condition: "exact"
+    examples: |
+      - /contact

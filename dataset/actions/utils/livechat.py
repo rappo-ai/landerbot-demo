@@ -18,6 +18,16 @@ def is_livechat_enabled(user_id):
     return response_json.get("enabled", False)
 
 
+def enable_livechat(user_id, enabled=True):
+    try:
+        url = get_livechat_admin_url("/livechat/enabled")
+        response = requests.post(
+            url, json={"user_id": user_id, "enabled": enabled}, timeout=5
+        )
+    except Exception as e:
+        logger.error(e)
+
+
 def post_livechat_message(user_id, message_text):
     response_json = {}
     try:

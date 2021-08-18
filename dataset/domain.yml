@@ -2,10 +2,27 @@ version: "2.0"
 
 actions:
   - action_session_start
-  - action_help
-  - action_main_menu
+  - action_about
+  - action_installation
   - action_livechat_message
   - action_livechat_reply
+  - action_main_menu
+  - action_pricing
+
+  - action_on_contact_form_done
+  - action_reset_contact_form
+  - validate_contact_form
+
+forms:
+  contact_form:
+    ignored_intents:
+      - start
+      - menu
+    required_slots:
+      contact__name:
+        - type: from_text
+      contact__email:
+        - type: from_text
 
 session_config:
   session_expiration_time: 60
@@ -21,4 +38,8 @@ slots:
   first_name:
     type: text
   telegram_user_id:
+    type: text
+  contact__name:
+    type: text
+  contact__email:
     type: text

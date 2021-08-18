@@ -15,6 +15,19 @@ class ActionMainMenu(Action):
         domain: Dict[Text, Any],
     ) -> List[Dict[Text, Any]]:
 
-        dispatcher.utter_message(text="What would you like to do?")
+        dispatcher.utter_message(
+            text="How can I help you? Please choose one the topics listed below 👇"
+        )
+        dispatcher.utter_message(
+            json_message={
+                "payload": "quickReplies",
+                "data": [
+                    {"payload": "/about", "title": "❔ About Rappo"},
+                    {"payload": "/pricing", "title": "💰 Pricing"},
+                    {"payload": "/installation", "title": "🎚️ Installation"},
+                    {"payload": "/contact", "title": "💬 Live chat"},
+                ],
+            }
+        )
 
         return []

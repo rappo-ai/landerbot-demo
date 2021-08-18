@@ -1,0 +1,21 @@
+version: "2.0"
+
+actions:
+  - action_installation
+
+intents:
+  - installation
+
+nlu:
+  - intent: installation
+    metadata:
+      keyword_intent: true
+      match_condition: "exact"
+    examples: |
+      - /installation
+
+rules:
+  - rule: Command /installation
+    steps:
+      - intent: installation
+      - action: action_installation

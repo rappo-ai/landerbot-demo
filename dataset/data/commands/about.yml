@@ -1,21 +1,21 @@
 version: "2.0"
 
 actions:
-  - action_help
+  - action_about
 
 intents:
-  - help
+  - about
 
 nlu:
-  - intent: help
+  - intent: about
     metadata:
       keyword_intent: true
       match_condition: "exact"
     examples: |
-      - /help
+      - /about
 
 rules:
-  - rule: Command /help
+  - rule: Command /about
     steps:
-      - intent: help
-      - action: action_help
+      - intent: about
+      - action: action_about

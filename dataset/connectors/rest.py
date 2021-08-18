@@ -15,7 +15,7 @@ from rasa.core.channels.channel import (
     UserMessage,
 )
 
-from actions.utils.livechat import is_livechat_enabled
+from actions.utils.livechat import enable_livechat, is_livechat_enabled
 
 logger = logging.getLogger(__name__)
 
@@ -96,7 +96,7 @@ class RestInput(InputChannel):
 
     # noinspection PyMethodMayBeStatic
     def _extract_message(self, req: Request) -> Optional[Text]:
-        return req.json.get("message", None)
+        return req.json.get("text", None)
 
     def _extract_input_channel(self, req: Request) -> Text:
         return req.json.get("input_channel") or self.name()
@@ -123,8 +123,11 @@ class RestInput(InputChannel):
                 request, "stream", default=False
             )
             sender_id = self._extract_sender(request)
-            is_livechat = is_livechat_enabled(user_id=sender_id)
-            text = "/livechat_reply" if is_livechat else self._extract_message(request)
+            text = self._extract_message(request)
+            if text == "/restart":
+                enable_livechat(user_id=sender_id, enabled=False)
+            elif is_livechat_enabled(user_id=sender_id):
+                text = "/livechat_reply"
             input_channel = self._extract_input_channel(request)
             metadata = self.get_metadata(request)
 

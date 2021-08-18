@@ -10,10 +10,11 @@ nlu:
       match_condition: "exact"
     examples: |
       - /start
+      - /restart
 
 responses:
   utter_greet:
-    - text: Hello!
+    - text: Hello! You are chatting with a bot powered by Rappo AI.
 
 rules:
   - rule: Command /start

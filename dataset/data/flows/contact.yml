@@ -1,0 +1,46 @@
+version: "2.0"
+
+actions:
+  - action_on_contact_form_done
+  - action_reset_contact_form
+  - validate_contact_form
+
+forms:
+  contact_form:
+    ignored_intents:
+      - start
+      - menu
+    required_slots:
+      contact__name:
+        - type: from_text
+      contact__email:
+        - type: from_text
+
+responses:
+  utter_ask_contact__name:
+    - text: What is your name?
+  utter_ask_contact__email:
+    - text: What is your email id?
+
+rules:
+  - rule: Start contact form
+    steps:
+      - intent: contact
+      - action: action_reset_contact_form
+      - action: contact_form
+      - active_loop: contact_form
+  - rule: End new contact form
+    condition:
+      - active_loop: contact_form
+    steps:
+      - action: contact_form
+      - active_loop: null
+      - slot_was_set:
+          - requested_slot: null
+      - action: action_on_contact_form_done
+
+slots:
+  contact__name:
+    type: text
+  contact__email:
+    type: text

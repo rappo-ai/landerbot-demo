@@ -1,0 +1,21 @@
+version: "2.0"
+
+actions:
+  - action_pricing
+
+intents:
+  - pricing
+
+nlu:
+  - intent: pricing
+    metadata:
+      keyword_intent: true
+      match_condition: "exact"
+    examples: |
+      - /pricing
+
+rules:
+  - rule: Command /pricing
+    steps:
+      - intent: pricing
+      - action: action_pricing
