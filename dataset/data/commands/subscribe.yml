@@ -1,0 +1,21 @@
+version: "2.0"
+
+actions:
+  - action_subscribe
+
+intents:
+  - subscribe
+
+nlu:
+  - intent: subscribe
+    metadata:
+      keyword_intent: true
+      match_condition: "start"
+    examples: |
+      - /subscribe
+
+rules:
+  - rule: Command /subscribe
+    steps:
+      - intent: subscribe
+      - action: action_subscribe

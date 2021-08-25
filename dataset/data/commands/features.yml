@@ -1,0 +1,21 @@
+version: "2.0"
+
+actions:
+  - action_features
+
+intents:
+  - features
+
+nlu:
+  - intent: features
+    metadata:
+      keyword_intent: true
+      match_condition: "exact"
+    examples: |
+      - /features
+
+rules:
+  - rule: Command /features
+    steps:
+      - intent: features
+      - action: action_features

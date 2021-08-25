@@ -16,16 +16,17 @@ class ActionMainMenu(Action):
     ) -> List[Dict[Text, Any]]:
 
         dispatcher.utter_message(
-            text="How can I help you? Please choose one the topics listed below 👇"
+            text="How can I help you? Please choose one of the topics listed below 👇"
         )
         dispatcher.utter_message(
             json_message={
                 "payload": "quickReplies",
                 "data": [
-                    {"payload": "/about", "title": "❔ About Rappo"},
-                    {"payload": "/pricing", "title": "💰 Pricing"},
+                    {"payload": "/features", "title": "💡 Features"},
                     {"payload": "/installation", "title": "🎚️ Installation"},
+                    {"payload": "/pricing", "title": "💰 Pricing"},
                     {"payload": "/contact", "title": "💬 Live chat"},
+                    {"payload": "/about", "title": "❔ About Rappo"},
                 ],
             }
         )

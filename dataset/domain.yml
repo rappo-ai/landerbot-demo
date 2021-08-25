@@ -3,6 +3,8 @@ version: "2.0"
 actions:
   - action_session_start
   - action_about
+  - action_features
+  - action_subscribe
   - action_installation
   - action_livechat_message
   - action_livechat_reply
@@ -19,9 +21,9 @@ forms:
       - start
       - menu
     required_slots:
-      contact__name:
-        - type: from_text
       contact__email:
+        - type: from_text
+      contact__name:
         - type: from_text
 
 session_config:

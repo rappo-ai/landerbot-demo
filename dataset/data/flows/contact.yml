@@ -11,9 +11,9 @@ forms:
       - start
       - menu
     required_slots:
-      contact__name:
-        - type: from_text
       contact__email:
+        - type: from_text
+      contact__name:
         - type: from_text
 
 responses:

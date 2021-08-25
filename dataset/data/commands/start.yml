@@ -14,7 +14,7 @@ nlu:
 
 responses:
   utter_greet:
-    - text: Hello! You are chatting with a bot powered by Rappo AI.
+    - text: Hey there, 👋 welcome to Rappo. We build tools to make chatbots 🤖, like this one!
 
 rules:
   - rule: Command /start
