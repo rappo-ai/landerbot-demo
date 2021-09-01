@@ -26,6 +26,6 @@ class ActionSubscribe(Action):
             dispatcher.utter_message(text="The command syntax is invalid.")
             return []
 
-        return set_slot(key="contact__email", value=matches.get("args")).extend(
-            trigger_intent("contact", "rest")
-        )
+        return set_slot(
+            key="contact__email", value=matches.get("args")
+        ) + trigger_intent("contact", "rest")
