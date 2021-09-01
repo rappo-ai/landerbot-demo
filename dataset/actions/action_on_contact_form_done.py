@@ -19,7 +19,7 @@ class ActionOnContactFormDone(Action):
 
         user_name = tracker.get_slot("contact__name")
         user_email = tracker.get_slot("contact__email")
-        enable_livechat(tracker.sender_id, True)
+        enable_livechat(tracker.sender_id, user_name, user_email, True)
         post_livechat_message(
             tracker.sender_id, f"Live chat started with {user_name}, {user_email}"
         )

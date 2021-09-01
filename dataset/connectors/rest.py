@@ -124,7 +124,7 @@ class RestInput(InputChannel):
             )
             sender_id = self._extract_sender(request)
             text = self._extract_message(request)
-            if text == "/restart":
+            if text == "/start" or text == "/restart":
                 enable_livechat(user_id=sender_id, enabled=False)
             elif is_livechat_enabled(user_id=sender_id):
                 text = "/livechat_reply"

@@ -4,12 +4,13 @@ actions:
   - action_session_start
   - action_about
   - action_features
-  - action_subscribe
   - action_installation
   - action_livechat_message
   - action_livechat_reply
   - action_main_menu
   - action_pricing
+  - action_start
+  - action_subscribe
 
   - action_on_contact_form_done
   - action_reset_contact_form

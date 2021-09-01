@@ -1,9 +1,9 @@
 from typing import Any, Text, Dict, List
 
 from rasa_sdk import Action, Tracker
-from rasa_sdk.events import ActionExecuted, SlotSet, UserUttered
 from rasa_sdk.executor import CollectingDispatcher
 
+from actions.utils.action import set_slot, trigger_intent
 from actions.utils.command import extract_command
 
 
@@ -26,12 +26,6 @@ class ActionSubscribe(Action):
             dispatcher.utter_message(text="The command syntax is invalid.")
             return []
 
-        return [
-            SlotSet(key="contact__email", value=matches.get("args")),
-            ActionExecuted("action_listen"),
-            UserUttered(
-                text="/contact",
-                parse_data={"intent": {"name": "contact"}},
-                input_channel="rest",
-            ),
-        ]
+        return set_slot(key="contact__email", value=matches.get("args")).extend(
+            trigger_intent("contact", "rest")
+        )

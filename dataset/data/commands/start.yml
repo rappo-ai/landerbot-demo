@@ -1,5 +1,8 @@
 version: "2.0"
 
+actions:
+  - action_start
+
 intents:
   - start
 
@@ -12,16 +15,12 @@ nlu:
       - /start
       - /restart
 
-responses:
-  utter_greet:
-    - text: Hey there, 👋 welcome to Rappo. We build tools to make chatbots 🤖, like this one!
-
 rules:
   - rule: Command /start
     steps:
       - intent: start
-      - action: utter_greet
-      - action: action_main_menu
+      - action: action_deactivate_loop
+      - action: action_start
   - rule: NLU Fallback
     steps:
       - intent: nlu_fallback

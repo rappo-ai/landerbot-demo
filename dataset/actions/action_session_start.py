@@ -1,8 +1,9 @@
 from typing import Any, Text, Dict, List
 from rasa_sdk import Action, Tracker
-from rasa_sdk.events import SlotSet, SessionStarted, ActionExecuted, EventType
+from rasa_sdk.events import SessionStarted, ActionExecuted, EventType
 from rasa_sdk.executor import CollectingDispatcher
 
+from actions.utils.action import set_slot
 from actions.utils.json import get_json_key
 from actions.utils.telegram import get_chat_type, get_first_name, get_user_id
 
@@ -19,7 +20,7 @@ class ActionSessionStart(Action):
         for key in tracker.slots.keys():
             value = tracker.get_slot(key)
             if (value is not None) and (key != "session_started_metadata"):
-                slots.append(SlotSet(key=key, value=value))
+                slots.extend(set_slot(key=key, value=value))
         return slots
 
     @staticmethod
@@ -32,15 +33,15 @@ class ActionSessionStart(Action):
 
         chat_type = get_chat_type(metadata)
         if chat_type is not None:
-            slots.append(SlotSet(key="chat_type", value=chat_type))
+            slots.extend(set_slot(key="chat_type", value=chat_type))
 
         first_name = get_first_name(metadata)
         if first_name is not None:
-            slots.append(SlotSet(key="first_name", value=first_name))
+            slots.extend(set_slot(key="first_name", value=first_name))
 
         telegram_user_id = get_user_id(metadata)
         if telegram_user_id is not None:
-            slots.append(SlotSet(key="telegram_user_id", value=str(telegram_user_id)))
+            slots.extend(set_slot(key="telegram_user_id", value=str(telegram_user_id)))
 
         return slots
 
