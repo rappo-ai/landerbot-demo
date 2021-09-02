@@ -17,6 +17,13 @@ class ActionStart(Action):
         domain: Dict[Text, Any],
     ) -> List[Dict[Text, Any]]:
 
+        old_events = [
+            e
+            for e in tracker.events_after_latest_restart()
+            if e.get("event") in ["user", "bot"]
+        ]
+        for e in old_events:
+            dispatcher.utter_message(json_message=e)
         dispatcher.utter_message(
             text="Hey there, 👋 welcome to Rappo. We build tools to make chatbots 🤖, like this one!"
         )
