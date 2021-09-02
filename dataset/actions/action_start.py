@@ -4,6 +4,21 @@ from rasa_sdk import Action, Tracker
 from rasa_sdk.executor import CollectingDispatcher
 
 from actions.utils.action import trigger_intent
+from actions.utils.json import get_json_key
+
+
+def _is_user_or_bot_event(e):
+    return e.get("event") in ["user", "bot"]
+
+
+def _unpack_event(e):
+    if get_json_key(e, "data.custom.event"):
+        return get_json_key(e, "data.custom")
+    return e
+
+
+def _is_valid_event(e):
+    return e.get("event") == "bot" or bool(get_json_key(e, "metadata.input_text"))
 
 
 class ActionStart(Action):
@@ -18,10 +33,12 @@ class ActionStart(Action):
     ) -> List[Dict[Text, Any]]:
 
         old_events = [
-            e
+            _unpack_event(e)
             for e in tracker.events_after_latest_restart()
-            if e.get("event") in ["user", "bot"]
+            if _is_user_or_bot_event(e)
         ]
+        old_events = [e for e in old_events if _is_valid_event(e)]
+
         for e in old_events:
             dispatcher.utter_message(json_message=e)
         dispatcher.utter_message(
