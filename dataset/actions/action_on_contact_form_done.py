@@ -26,5 +26,7 @@ class ActionOnContactFormDone(Action):
         dispatcher.utter_message(
             text="Thank you for reaching out! You are now connected to one of our staff. Please type your query to begin 💬"
         )
-
+        dispatcher.utter_message(
+            json_message={"payload": "event", "data": {"name": "livechat_start"}}
+        )
         return []
