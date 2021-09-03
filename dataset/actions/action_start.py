@@ -9,7 +9,11 @@ from rasa_sdk.executor import CollectingDispatcher
 from actions.utils.action import trigger_intent
 from actions.utils.host import get_host_url
 from actions.utils.json import get_json_key
-from actions.utils.livechat import enable_livechat, is_livechat_enabled
+from actions.utils.livechat import (
+    enable_livechat,
+    is_livechat_enabled,
+    post_livechat_message,
+)
 
 
 def _is_user_or_bot_event(e):
@@ -50,6 +54,12 @@ class ActionStart(Action):
         tracker: Tracker,
         domain: Dict[Text, Any],
     ) -> List[Dict[Text, Any]]:
+
+        metadata = tracker.latest_message.get("metadata", {}).get("metadata", {})
+        location_data = metadata.get("location_data")
+        browser_data = metadata.get("browser_data")
+        user_data_text = f"Location: {location_data.get('city', 'NA')}, {location_data.get('country', 'NA')}\nDevice: {browser_data.get('userAgent', 'NA')}\nBrowser: {browser_data.get('browserName', 'NA')} {browser_data.get('fullVersion', 'NA')}"
+        post_livechat_message(tracker.sender_id, user_data_text)
 
         old_events = [
             e
