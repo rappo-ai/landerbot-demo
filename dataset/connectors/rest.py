@@ -8,12 +8,12 @@ from sanic.request import Request
 from sanic.response import HTTPResponse, StreamingHTTPResponse
 from typing import Text, Dict, Any, Optional, Callable, Awaitable, NoReturn
 
-import rasa.utils.endpoints
 from rasa.core.channels.channel import (
     InputChannel,
     CollectingOutputChannel,
     UserMessage,
 )
+import rasa.utils.endpoints
 
 from actions.utils.livechat import enable_livechat, is_livechat_enabled
 
@@ -169,7 +169,7 @@ class RestInput(InputChannel):
                     )
                 return response.json(collector.messages)
 
-        @custom_webhook.route("/events")
+        @custom_webhook.route("/events", methods=["GET"])
         async def events(request: Request) -> HTTPResponse:
             sender_id = get_query_param(request.args, "sender")
             if not sender_id:
@@ -196,6 +196,19 @@ class RestInput(InputChannel):
                 streaming_fn,
                 content_type="text/event-stream",
             )
+
+        @custom_webhook.route("/enqueue_history", methods=["POST"])
+        async def enqueue(request: Request) -> HTTPResponse:
+            try:
+                request_dict = request.json
+                recipient_id = request_dict.get("recipient_id")
+                history_events = request_dict.get("history_events")
+                queue = self.queue_output_channel.get_message_queue(recipient_id)
+                for e in history_events:
+                    await queue.put(e)
+            except Exception as e:
+                logger.error(f"Exception in enqueue.{e}")
+            return response.json({"status": "ok"})
 
         @custom_webhook.route("/livechat/message", methods=["POST"])
         async def livechat_message(request: Request) -> HTTPResponse:
