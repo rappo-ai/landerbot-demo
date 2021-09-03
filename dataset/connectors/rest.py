@@ -126,8 +126,6 @@ class RestInput(InputChannel):
             text = self._extract_message(request)
             if text == "/restart":
                 enable_livechat(user_id=sender_id, enabled=False)
-            elif text != "/start" and is_livechat_enabled(user_id=sender_id):
-                text = "/livechat_reply"
             input_channel = self._extract_input_channel(request)
             metadata = self.get_metadata(request)
 
@@ -143,6 +141,17 @@ class RestInput(InputChannel):
                         disable_nlu_bypass=True,
                     )
                 )
+                asyncio.ensure_future(
+                    self.on_message_wrapper(
+                        on_new_message,
+                        "/livechat_reply",
+                        self.queue_output_channel,
+                        sender_id,
+                        input_channel=input_channel,
+                        metadata=metadata,
+                        disable_nlu_bypass=True,
+                    )
+                )
                 return response.json({"status": "ok"})
             else:
                 collector = CollectingOutputChannel()
@@ -151,6 +160,16 @@ class RestInput(InputChannel):
                     await on_new_message(
                         UserMessage(
                             text,
+                            collector,
+                            sender_id,
+                            input_channel=input_channel,
+                            metadata=metadata,
+                            disable_nlu_bypass=True,
+                        )
+                    )
+                    await on_new_message(
+                        UserMessage(
+                            "/livechat_reply",
                             collector,
                             sender_id,
                             input_channel=input_channel,
