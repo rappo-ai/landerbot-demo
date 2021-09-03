@@ -18,14 +18,8 @@ def _is_user_or_bot_event(e):
 def _is_valid_event(e):
     return (
         e.get("event") == "bot"
-        and (e.get("text") or get_json_key(e, "data.custom.data"))
+        and (e.get("text") or get_json_key(e, "data.custom.payload") == "quickReplies")
     ) or (e.get("event") == "user" and bool(get_json_key(e, "metadata.input_text")))
-
-
-def _unpack_event(e):
-    if get_json_key(e, "data.custom.event"):
-        return get_json_key(e, "data.custom")
-    return e
 
 
 def _process_event(e):
@@ -57,7 +51,7 @@ class ActionStart(Action):
     ) -> List[Dict[Text, Any]]:
 
         old_events = [
-            _unpack_event(e)
+            e
             for e in tracker.events_after_latest_restart()
             if (_is_user_or_bot_event(e) and _is_valid_event(e))
         ]
