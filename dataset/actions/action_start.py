@@ -55,6 +55,12 @@ class ActionStart(Action):
         domain: Dict[Text, Any],
     ) -> List[Dict[Text, Any]]:
 
+        metadata = tracker.latest_message.get("metadata", {}).get("metadata", {})
+        location_data = metadata.get("location_data")
+        browser_data = metadata.get("browser_data")
+        user_data_text = f"Location: {location_data.get('city', 'NA')}, {location_data.get('country', 'NA')}\nDevice: {browser_data.get('userAgent', 'NA')}\nBrowser: {browser_data.get('browserName', 'NA')} {browser_data.get('fullVersion', 'NA')}"
+        post_livechat_message(tracker.sender_id, user_data_text)
+
         old_events = [
             e
             for e in tracker.events_after_latest_restart()
@@ -75,12 +81,6 @@ class ActionStart(Action):
 
         is_livechat = is_livechat_enabled(tracker.sender_id)
         if not old_events:
-            metadata = tracker.latest_message.get("metadata", {}).get("metadata", {})
-            location_data = metadata.get("location_data")
-            browser_data = metadata.get("browser_data")
-            user_data_text = f"Location: {location_data.get('city', 'NA')}, {location_data.get('country', 'NA')}\nDevice: {browser_data.get('userAgent', 'NA')}\nBrowser: {browser_data.get('browserName', 'NA')} {browser_data.get('fullVersion', 'NA')}"
-            post_livechat_message(tracker.sender_id, user_data_text)
-
             dispatcher.utter_message(
                 text="Hey there, 👋 welcome to Rappo. We build tools to make chatbots 🤖, like this one!"
             )
