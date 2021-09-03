@@ -9,6 +9,7 @@ from rasa_sdk.executor import CollectingDispatcher
 from actions.utils.action import trigger_intent
 from actions.utils.host import get_host_url
 from actions.utils.json import get_json_key
+from actions.utils.livechat import enable_livechat, is_livechat_enabled
 
 
 def _is_user_or_bot_event(e):
@@ -68,9 +69,15 @@ class ActionStart(Action):
             enqueue_history_url = get_host_url("rest", "/webhooks/rest/enqueue_history")
             requests.post(enqueue_history_url, headers=headers, data=request_data_str)
 
-            return []
-        else:
+        is_livechat = is_livechat_enabled(tracker.sender_id)
+        if not old_events:
             dispatcher.utter_message(
                 text="Hey there, 👋 welcome to Rappo. We build tools to make chatbots 🤖, like this one!"
             )
+
+        if not old_events or is_livechat:
+            if is_livechat:
+                enable_livechat(tracker.sender_id, enabled=False)
             return trigger_intent("menu", "rest")
+
+        return []
