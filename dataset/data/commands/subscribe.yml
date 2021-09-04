@@ -18,4 +18,5 @@ rules:
   - rule: Command /subscribe
     steps:
       - intent: subscribe
+      - action: action_deactivate_loop
       - action: action_subscribe

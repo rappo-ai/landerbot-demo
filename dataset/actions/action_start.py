@@ -16,10 +16,6 @@ from actions.utils.livechat import (
 )
 
 
-def _is_user_or_bot_event(e):
-    return e.get("event") in ["user", "bot"]
-
-
 def _is_valid_event(e):
     return (
         e.get("event") == "bot"
@@ -56,16 +52,14 @@ class ActionStart(Action):
     ) -> List[Dict[Text, Any]]:
 
         metadata = tracker.latest_message.get("metadata", {}).get("metadata", {})
-        location_data = metadata.get("location_data")
-        browser_data = metadata.get("browser_data")
-        user_data_text = f"Location: {location_data.get('city', 'NA')}, {location_data.get('country', 'NA')}\nDevice: {browser_data.get('userAgent', 'NA')}\nBrowser: {browser_data.get('browserName', 'NA')} {browser_data.get('fullVersion', 'NA')}"
-        post_livechat_message(tracker.sender_id, user_data_text)
+        location_data = metadata.get("location_data", {})
+        browser_data = metadata.get("browser_data", {})
+        if location_data or browser_data:
+            user_data_text = f"Location: {location_data.get('city', 'NA')}, {location_data.get('country', 'NA')}\nDevice: {browser_data.get('userAgent', 'NA')}\nBrowser: {browser_data.get('browserName', 'NA')} {browser_data.get('fullVersion', 'NA')}"
+            post_livechat_message(tracker.sender_id, user_data_text)
 
-        old_events = [
-            e
-            for e in tracker.events_after_latest_restart()
-            if (_is_user_or_bot_event(e) and _is_valid_event(e))
-        ]
+        old_events = tracker.events_after_latest_restart()
+        old_events = [e for e in old_events if _is_valid_event(e)]
         old_events = [_process_event(e) for e in old_events]
 
         if old_events:

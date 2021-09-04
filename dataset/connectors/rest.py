@@ -104,6 +104,77 @@ class RestInput(InputChannel):
     def get_metadata(self, request: Request) -> Dict[Text, Any]:
         return request.json
 
+    async def handle_user_message(
+        self,
+        should_use_stream: bool,
+        on_new_message: Callable[[UserMessage], Awaitable[None]],
+        sender_id: Text,
+        text: Text,
+        metadata: Dict[Text, Any],
+        input_channel: Text,
+        disable_nlu_bypass: bool,
+        send_live_chat: bool,
+    ) -> HTTPResponse:
+        if should_use_stream:
+            asyncio.ensure_future(
+                self.on_message_wrapper(
+                    on_new_message,
+                    text,
+                    self.queue_output_channel,
+                    sender_id,
+                    input_channel=input_channel,
+                    metadata=metadata,
+                    disable_nlu_bypass=disable_nlu_bypass,
+                )
+            )
+            if send_live_chat:
+                asyncio.ensure_future(
+                    self.on_message_wrapper(
+                        on_new_message,
+                        "/livechat_reply",
+                        self.queue_output_channel,
+                        sender_id,
+                        input_channel=input_channel,
+                        metadata=metadata,
+                        disable_nlu_bypass=True,
+                    )
+                )
+            return response.json({"status": "ok"})
+        else:
+            collector = CollectingOutputChannel()
+            # noinspection PyBroadException
+            try:
+                await on_new_message(
+                    UserMessage(
+                        text,
+                        collector,
+                        sender_id,
+                        input_channel=input_channel,
+                        metadata=metadata,
+                        disable_nlu_bypass=disable_nlu_bypass,
+                    )
+                )
+                if send_live_chat:
+                    await on_new_message(
+                        UserMessage(
+                            "/livechat_reply",
+                            collector,
+                            sender_id,
+                            input_channel=input_channel,
+                            metadata=metadata,
+                            disable_nlu_bypass=True,
+                        )
+                    )
+            except CancelledError:
+                logger.error(
+                    f"Message handling timed out for " f"user message '{text}'."
+                )
+            except Exception:
+                logger.exception(
+                    f"An exception occured while handling " f"user message '{text}'."
+                )
+            return response.json(collector.messages)
+
     def blueprint(
         self, on_new_message: Callable[[UserMessage], Awaitable[None]]
     ) -> Blueprint:
@@ -124,69 +195,30 @@ class RestInput(InputChannel):
             )
             sender_id = self._extract_sender(request)
             text = self._extract_message(request)
-            if text == "/restart":
-                enable_livechat(user_id=sender_id, enabled=False)
             input_channel = self._extract_input_channel(request)
             metadata = self.get_metadata(request)
-
-            if should_use_stream:
-                asyncio.ensure_future(
-                    self.on_message_wrapper(
-                        on_new_message,
-                        text,
-                        self.queue_output_channel,
-                        sender_id,
-                        input_channel=input_channel,
-                        metadata=metadata,
-                        disable_nlu_bypass=True,
-                    )
+            if text == "/restart":
+                enable_livechat(user_id=sender_id, enabled=False)
+                await self.handle_user_message(
+                    should_use_stream=should_use_stream,
+                    on_new_message=on_new_message,
+                    sender_id=sender_id,
+                    text=text,
+                    metadata=metadata,
+                    input_channel=input_channel,
+                    disable_nlu_bypass=False,
+                    send_live_chat=False,
                 )
-                asyncio.ensure_future(
-                    self.on_message_wrapper(
-                        on_new_message,
-                        "/livechat_reply",
-                        self.queue_output_channel,
-                        sender_id,
-                        input_channel=input_channel,
-                        metadata=metadata,
-                        disable_nlu_bypass=True,
-                    )
-                )
-                return response.json({"status": "ok"})
-            else:
-                collector = CollectingOutputChannel()
-                # noinspection PyBroadException
-                try:
-                    await on_new_message(
-                        UserMessage(
-                            text,
-                            collector,
-                            sender_id,
-                            input_channel=input_channel,
-                            metadata=metadata,
-                            disable_nlu_bypass=True,
-                        )
-                    )
-                    await on_new_message(
-                        UserMessage(
-                            "/livechat_reply",
-                            collector,
-                            sender_id,
-                            input_channel=input_channel,
-                            metadata=metadata,
-                            disable_nlu_bypass=True,
-                        )
-                    )
-                except CancelledError:
-                    logger.error(
-                        f"Message handling timed out for " f"user message '{text}'."
-                    )
-                except Exception:
-                    logger.exception(
-                        f"An exception occured while handling "
-                        f"user message '{text}'."
-                    )
-                return response.json(collector.messages)
+            return await self.handle_user_message(
+                should_use_stream=should_use_stream,
+                on_new_message=on_new_message,
+                sender_id=sender_id,
+                text=text,
+                metadata=metadata,
+                input_channel=input_channel,
+                disable_nlu_bypass=True,
+                send_live_chat=True,
+            )
 
         @custom_webhook.route("/events", methods=["GET"])
         async def events(request: Request) -> HTTPResponse:

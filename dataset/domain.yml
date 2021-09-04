@@ -12,6 +12,8 @@ actions:
   - action_start
   - action_subscribe
 
+  - action_ask_contact__email
+  - action_ask_contact__name
   - action_on_contact_form_done
   - action_reset_contact_form
   - validate_contact_form
@@ -21,6 +23,9 @@ forms:
     ignored_intents:
       - start
       - menu
+      - livechat_message
+      - livechat_reply
+      - subscribe
     required_slots:
       contact__email:
         - type: from_text
