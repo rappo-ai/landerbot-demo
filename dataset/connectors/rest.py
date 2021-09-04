@@ -113,7 +113,6 @@ class RestInput(InputChannel):
         metadata: Dict[Text, Any],
         input_channel: Text,
         disable_nlu_bypass: bool,
-        send_live_chat: bool,
     ) -> HTTPResponse:
         if should_use_stream:
             asyncio.ensure_future(
@@ -127,18 +126,6 @@ class RestInput(InputChannel):
                     disable_nlu_bypass=disable_nlu_bypass,
                 )
             )
-            if send_live_chat:
-                asyncio.ensure_future(
-                    self.on_message_wrapper(
-                        on_new_message,
-                        "/livechat_reply",
-                        self.queue_output_channel,
-                        sender_id,
-                        input_channel=input_channel,
-                        metadata=metadata,
-                        disable_nlu_bypass=True,
-                    )
-                )
             return response.json({"status": "ok"})
         else:
             collector = CollectingOutputChannel()
@@ -154,17 +141,6 @@ class RestInput(InputChannel):
                         disable_nlu_bypass=disable_nlu_bypass,
                     )
                 )
-                if send_live_chat:
-                    await on_new_message(
-                        UserMessage(
-                            "/livechat_reply",
-                            collector,
-                            sender_id,
-                            input_channel=input_channel,
-                            metadata=metadata,
-                            disable_nlu_bypass=True,
-                        )
-                    )
             except CancelledError:
                 logger.error(
                     f"Message handling timed out for " f"user message '{text}'."
@@ -207,17 +183,29 @@ class RestInput(InputChannel):
                     metadata=metadata,
                     input_channel=input_channel,
                     disable_nlu_bypass=False,
-                    send_live_chat=False,
+                )
+            is_livechat_mode = is_livechat_enabled(user_id=sender_id)
+            is_livechat_reply = is_livechat_mode and (
+                text not in ["/restart", "/start"]
+            )
+            if not is_livechat_mode:
+                await self.handle_user_message(
+                    should_use_stream=should_use_stream,
+                    on_new_message=on_new_message,
+                    sender_id=sender_id,
+                    text="/livechat_reply",
+                    metadata=metadata,
+                    input_channel=input_channel,
+                    disable_nlu_bypass=True,
                 )
             return await self.handle_user_message(
                 should_use_stream=should_use_stream,
                 on_new_message=on_new_message,
                 sender_id=sender_id,
-                text=text,
+                text=("/livechat_reply" if is_livechat_reply else text),
                 metadata=metadata,
                 input_channel=input_channel,
                 disable_nlu_bypass=True,
-                send_live_chat=True,
             )
 
         @custom_webhook.route("/events", methods=["GET"])
@@ -267,16 +255,14 @@ class RestInput(InputChannel):
                 try:
                     request_dict = request.json
                     sender_id = self._extract_sender(request)
-                    asyncio.ensure_future(
-                        self.on_message_wrapper(
-                            on_new_message,
-                            "/livechat_message",
-                            self.queue_output_channel,
-                            sender_id,
-                            input_channel=self.name(),
-                            metadata=request_dict,
-                            disable_nlu_bypass=True,
-                        )
+                    await self.handle_user_message(
+                        should_use_stream=True,
+                        on_new_message=on_new_message,
+                        sender_id=sender_id,
+                        text="/livechat_message",
+                        metadata=request_dict,
+                        input_channel=self.name(),
+                        disable_nlu_bypass=True,
                     )
                 except Exception as e:
                     logger.error(f"Exception in chat_webhook.{e}")
