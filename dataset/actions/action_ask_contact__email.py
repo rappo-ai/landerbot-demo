@@ -16,7 +16,7 @@ class ActionAskContactEmail(Action):
     ) -> List[Dict[Text, Any]]:
 
         latest_intent_name = tracker.latest_message.get("intent", {}).get("name")
-        if latest_intent_name != "livechat_reply":
+        if latest_intent_name not in ["livechat_reply", "livechat_message"]:
             dispatcher.utter_message(text="What is your email id?")
 
         return []
