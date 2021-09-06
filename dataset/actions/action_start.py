@@ -40,6 +40,29 @@ def _process_event(e):
     return processed_event
 
 
+def _update_user_metadata(user_id, metadata):
+    location_data = metadata.get("location_data", {})
+    browser_data = metadata.get("browser_data", {})
+    if location_data or browser_data:
+        post_livechat_message(
+            user_id,
+            user_metadata={
+                "browser": (
+                    browser_data.get("browserName", "?")
+                    + " "
+                    + browser_data.get("fullVersion", "?")
+                ),
+                "device": browser_data.get("userAgent", "?"),
+                "location": (
+                    location_data.get("city", "?")
+                    + ", "
+                    + location_data.get("country", "?")
+                ),
+            },
+            send_notification=False,
+        )
+
+
 class ActionStart(Action):
     def name(self) -> Text:
         return "action_start"
@@ -52,11 +75,7 @@ class ActionStart(Action):
     ) -> List[Dict[Text, Any]]:
 
         metadata = tracker.latest_message.get("metadata", {}).get("metadata", {})
-        location_data = metadata.get("location_data", {})
-        browser_data = metadata.get("browser_data", {})
-        if location_data or browser_data:
-            user_data_text = f"Location: {location_data.get('city', 'NA')}, {location_data.get('country', 'NA')}\nDevice: {browser_data.get('userAgent', 'NA')}\nBrowser: {browser_data.get('browserName', 'NA')} {browser_data.get('fullVersion', 'NA')}"
-            post_livechat_message(tracker.sender_id, user_data_text)
+        _update_user_metadata(tracker.sender_id, metadata)
 
         old_events = tracker.events_after_latest_restart()
         old_events = [e for e in old_events if _is_valid_event(e)]

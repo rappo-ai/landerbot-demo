@@ -19,9 +19,10 @@ class ActionOnContactFormDone(Action):
 
         user_name = tracker.get_slot("contact__name")
         user_email = tracker.get_slot("contact__email")
-        enable_livechat(tracker.sender_id, user_name, user_email, True)
+        enable_livechat(tracker.sender_id, True)
         post_livechat_message(
-            tracker.sender_id, f"Live chat started with {user_name}, {user_email}"
+            tracker.sender_id,
+            user_metadata={"user_name": user_name, "user_email": user_email},
         )
         dispatcher.utter_message(
             text="Thank you for reaching out! Please wait while we connect you to one of our staff. In case you don't hear from us, we will get back to you over email. Please type your query to begin 💬"

@@ -18,7 +18,7 @@ def is_livechat_enabled(user_id):
     return response_json.get("enabled", False)
 
 
-def enable_livechat(user_id, user_name="", user_email="", enabled=True):
+def enable_livechat(user_id, enabled=True):
     try:
         url = get_livechat_admin_url("/livechat/enabled")
         response = requests.post(
@@ -26,8 +26,6 @@ def enable_livechat(user_id, user_name="", user_email="", enabled=True):
             json={
                 "user_id": user_id,
                 "enabled": enabled,
-                "user_name": user_name,
-                "user_email": user_email,
             },
             timeout=5,
         )
@@ -35,13 +33,34 @@ def enable_livechat(user_id, user_name="", user_email="", enabled=True):
         logger.error(e)
 
 
-def post_livechat_message(user_id, message_text):
+def post_livechat_message(
+    user_id,
+    sender_type="user",
+    message_text=None,
+    user_metadata=None,
+    send_notification=True,
+):
     response_json = {}
     try:
         url = get_livechat_admin_url("/livechat/message")
-        response = requests.post(
-            url, json={"sender": user_id, "text": message_text}, timeout=5
-        )
+        request_body = {
+            "sender_id": user_id,
+            "sender_type": sender_type,
+            "send_notification": send_notification,
+        }
+        if message_text:
+            request_body.update(
+                {
+                    "message_text": message_text,
+                }
+            )
+        if user_metadata:
+            request_body.update(
+                {
+                    "user_metadata": user_metadata,
+                }
+            )
+        response = requests.post(url, json=request_body, timeout=5)
         response_json = response.json()
     except Exception as e:
         logger.error(e)

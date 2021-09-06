@@ -15,7 +15,12 @@ from rasa.core.channels.channel import (
 )
 import rasa.utils.endpoints
 
-from actions.utils.livechat import enable_livechat, is_livechat_enabled
+from actions.utils.json import get_json_key
+from actions.utils.livechat import (
+    enable_livechat,
+    is_livechat_enabled,
+    post_livechat_message,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -92,7 +97,7 @@ class RestInput(InputChannel):
         await on_new_message(message)
 
     def _extract_sender(self, req: Request) -> Optional[Text]:
-        return req.json.get("sender", None)
+        return req.json.get("sender_id", None)
 
     # noinspection PyMethodMayBeStatic
     def _extract_message(self, req: Request) -> Optional[Text]:
@@ -188,17 +193,7 @@ class RestInput(InputChannel):
             is_livechat_reply = is_livechat_mode and (
                 text not in ["/restart", "/start"]
             )
-            if not is_livechat_mode:
-                await self.handle_user_message(
-                    should_use_stream=should_use_stream,
-                    on_new_message=on_new_message,
-                    sender_id=sender_id,
-                    text="/livechat_reply",
-                    metadata=metadata,
-                    input_channel=input_channel,
-                    disable_nlu_bypass=True,
-                )
-            return await self.handle_user_message(
+            out_response = await self.handle_user_message(
                 should_use_stream=should_use_stream,
                 on_new_message=on_new_message,
                 sender_id=sender_id,
@@ -208,9 +203,43 @@ class RestInput(InputChannel):
                 disable_nlu_bypass=True,
             )
 
+            if not is_livechat_mode:
+                notification_text = metadata.get("input_text") or metadata.get("text")
+                if notification_text:
+                    post_livechat_message(
+                        sender_id, sender_type="user", message_text=notification_text
+                    )
+
+            bot_responses = json.loads(out_response.body)
+            for bot_response in bot_responses:
+                notification_text = ""
+                notification_text = notification_text + bot_response.get("text", "")
+                if (
+                    not notification_text
+                    and get_json_key(bot_response, "custom.payload") == "text"
+                ):
+                    notification_text = notification_text + get_json_key(
+                        bot_response, "custom.data", ""
+                    )
+                if get_json_key(bot_response, "custom.payload") == "quickReplies":
+                    spacer = " " if notification_text else ""
+                    reply_options = [
+                        r.get("title", "?")
+                        for r in get_json_key(bot_response, "custom.data")
+                    ]
+                    options_text = ", ".join(reply_options)
+                    notification_text = notification_text + spacer + f"[{options_text}]"
+                post_livechat_message(
+                    sender_id,
+                    sender_type="bot",
+                    message_text=notification_text,
+                )
+
+            return out_response
+
         @custom_webhook.route("/events", methods=["GET"])
         async def events(request: Request) -> HTTPResponse:
-            sender_id = get_query_param(request.args, "sender")
+            sender_id = get_query_param(request.args, "sender_id")
             if not sender_id:
                 return response.json(
                     {
@@ -227,8 +256,6 @@ class RestInput(InputChannel):
                     message = await message_queue.get()
                     payload_json = [message]
                     payload_str = json.dumps(payload_json)
-                    logger.info("PAYLOAD for SSE")
-                    logger.info("data: " + payload_str + "\n\n")
                     await response.write("data: " + payload_str + "\n\n")
 
             return response.stream(
