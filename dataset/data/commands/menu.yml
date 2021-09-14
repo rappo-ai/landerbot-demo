@@ -18,4 +18,5 @@ rules:
   - rule: Command /menu
     steps:
       - intent: menu
+      - action: action_deactivate_loop
       - action: action_main_menu

@@ -10,11 +10,15 @@ actions:
 forms:
   contact_form:
     ignored_intents:
-      - start
-      - menu
+      - about
+      - features
+      - installation
       - livechat_message
       - livechat_reply
       - livechat_visible
+      - pricing
+      - menu
+      - start
       - subscribe
     required_slots:
       contact__email:

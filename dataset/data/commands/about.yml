@@ -18,4 +18,5 @@ rules:
   - rule: Command /about
     steps:
       - intent: about
+      - action: action_deactivate_loop
       - action: action_about

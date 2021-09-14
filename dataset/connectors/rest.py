@@ -206,11 +206,10 @@ class RestInput(InputChannel):
                 disable_nlu_bypass=True,
             )
 
-            do_command_notification = not is_command or text not in [
-                "/livechat_visible"
-            ]
+            is_notification_command = is_command and text not in ["/livechat_visible"]
+            do_notification = is_notification_command if is_livechat_mode else (not is_command or is_notification_command)
 
-            if not is_livechat_mode and do_command_notification:
+            if do_notification:
                 notification_text = metadata.get("input_text") or metadata.get("text")
                 if notification_text:
                     post_livechat_message(

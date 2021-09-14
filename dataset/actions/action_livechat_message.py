@@ -17,6 +17,12 @@ class ActionLivechatMessage(Action):
 
         user_message = tracker.latest_message.get("metadata")
         message_text = user_message.get("text")
-        dispatcher.utter_message(text=message_text)
+        dispatcher.utter_message(
+            json_message={
+                "payload": "text",
+                "data": message_text,
+                "sender_type": "admin",
+            }
+        )
 
         return []

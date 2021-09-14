@@ -18,4 +18,5 @@ rules:
   - rule: Command /pricing
     steps:
       - intent: pricing
+      - action: action_deactivate_loop
       - action: action_pricing
