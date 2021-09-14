@@ -33,12 +33,43 @@ def enable_livechat(user_id, enabled=True):
         logger.error(e)
 
 
+def set_livechat_online_status(user_id, online: bool):
+    try:
+        url = get_livechat_admin_url("/livechat/online")
+        response = requests.post(
+            url,
+            json={
+                "user_id": user_id,
+                "online": online,
+            },
+            timeout=5,
+        )
+    except Exception as e:
+        logger.error(e)
+
+
+def set_livechat_visibility(user_id, visible: bool):
+    try:
+        url = get_livechat_admin_url("/livechat/visible")
+        response = requests.post(
+            url,
+            json={
+                "user_id": user_id,
+                "visible": visible,
+            },
+            timeout=5,
+        )
+    except Exception as e:
+        logger.error(e)
+
+
 def post_livechat_message(
     user_id,
     sender_type="user",
     message_text=None,
     user_metadata=None,
     send_notification=True,
+    notification_type="transcript",
 ):
     response_json = {}
     try:
@@ -47,6 +78,7 @@ def post_livechat_message(
             "sender_id": user_id,
             "sender_type": sender_type,
             "send_notification": send_notification,
+            "notification_type": notification_type,
         }
         if message_text:
             request_body.update(

@@ -7,6 +7,7 @@ actions:
   - action_installation
   - action_livechat_message
   - action_livechat_reply
+  - action_livechat_visible
   - action_main_menu
   - action_pricing
   - action_start
@@ -25,6 +26,7 @@ forms:
       - menu
       - livechat_message
       - livechat_reply
+      - livechat_visible
       - subscribe
     required_slots:
       contact__email:

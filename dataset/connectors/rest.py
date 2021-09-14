@@ -20,6 +20,7 @@ from actions.utils.livechat import (
     enable_livechat,
     is_livechat_enabled,
     post_livechat_message,
+    set_livechat_online_status,
 )
 
 logger = logging.getLogger(__name__)
@@ -178,7 +179,11 @@ class RestInput(InputChannel):
             text = self._extract_message(request)
             input_channel = self._extract_input_channel(request)
             metadata = self.get_metadata(request)
-            if text == "/restart":
+
+            is_restart = text == "/restart"
+            is_start = text == "/start"
+            is_command = text.startswith("/")
+            if is_restart:
                 enable_livechat(user_id=sender_id, enabled=False)
                 await self.handle_user_message(
                     should_use_stream=should_use_stream,
@@ -190,9 +195,7 @@ class RestInput(InputChannel):
                     disable_nlu_bypass=False,
                 )
             is_livechat_mode = is_livechat_enabled(user_id=sender_id)
-            is_livechat_reply = is_livechat_mode and (
-                text not in ["/restart", "/start"]
-            )
+            is_livechat_reply = is_livechat_mode and not is_command
             out_response = await self.handle_user_message(
                 should_use_stream=should_use_stream,
                 on_new_message=on_new_message,
@@ -203,11 +206,18 @@ class RestInput(InputChannel):
                 disable_nlu_bypass=True,
             )
 
-            if not is_livechat_mode:
+            do_command_notification = not is_command or text not in [
+                "/livechat_visible"
+            ]
+
+            if not is_livechat_mode and do_command_notification:
                 notification_text = metadata.get("input_text") or metadata.get("text")
                 if notification_text:
                     post_livechat_message(
-                        sender_id, sender_type="user", message_text=notification_text
+                        sender_id,
+                        sender_type="user",
+                        message_text=notification_text,
+                        send_notification=is_start,
                     )
 
             bot_responses = json.loads(out_response.body)
@@ -229,10 +239,16 @@ class RestInput(InputChannel):
                     ]
                     options_text = ", ".join(reply_options)
                     notification_text = notification_text + spacer + f"[{options_text}]"
+                send_notification = (
+                    get_json_key(bot_response, "custom.payload") == "event"
+                    and get_json_key(bot_response, "custom.data.name")
+                    == "livechat_start"
+                )
                 post_livechat_message(
                     sender_id,
                     sender_type="bot",
                     message_text=notification_text,
+                    send_notification=send_notification,
                 )
 
             return out_response
@@ -249,14 +265,18 @@ class RestInput(InputChannel):
                 )
 
             async def streaming_fn(response: StreamingHTTPResponse) -> None:
-                while True:
-                    message_queue = self.queue_output_channel.get_message_queue(
-                        recipient_id=sender_id
-                    )
-                    message = await message_queue.get()
-                    payload_json = [message]
-                    payload_str = json.dumps(payload_json)
-                    await response.write("data: " + payload_str + "\n\n")
+                try:
+                    set_livechat_online_status(sender_id, True)
+                    while True:
+                        message_queue = self.queue_output_channel.get_message_queue(
+                            recipient_id=sender_id
+                        )
+                        message = await message_queue.get()
+                        payload_json = [message]
+                        payload_str = json.dumps(payload_json)
+                        await response.write("data: " + payload_str + "\n\n")
+                except:
+                    set_livechat_online_status(sender_id, False)
 
             return response.stream(
                 streaming_fn,

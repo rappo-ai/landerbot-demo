@@ -14,6 +14,7 @@ forms:
       - menu
       - livechat_message
       - livechat_reply
+      - livechat_visible
       - subscribe
     required_slots:
       contact__email:

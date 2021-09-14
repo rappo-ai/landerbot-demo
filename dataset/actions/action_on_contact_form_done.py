@@ -23,6 +23,7 @@ class ActionOnContactFormDone(Action):
         post_livechat_message(
             tracker.sender_id,
             user_metadata={"user_name": user_name, "user_email": user_email},
+            send_notification=False,
         )
         dispatcher.utter_message(
             text="Thank you for reaching out! Please wait while we connect you to one of our staff. In case you don't hear from us, we will get back to you over email. Please type your query to begin 💬"
