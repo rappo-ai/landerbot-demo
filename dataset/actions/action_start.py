@@ -41,26 +41,11 @@ def _process_event(e):
 
 
 def _update_user_metadata(user_id, metadata):
-    user_metadata = {}
-
-    location_data = metadata.get("location_data", {})
-    if location_data:
-        user_metadata.update({"location_data": location_data})
-
-    browser_data = metadata.get("browser_data", {})
-    if browser_data:
-        user_metadata.update({"browser_data": browser_data})
-
-    referrer_data = metadata.get("referrer_data", {})
-    if referrer_data:
-        user_metadata.update({"referrer_data": referrer_data})
-
-    if user_metadata:
-        post_livechat_message(
-            user_id,
-            user_metadata=user_metadata,
-            send_notification=False,
-        )
+    post_livechat_message(
+        user_id,
+        user_metadata=metadata,
+        send_notification=False,
+    )
 
 
 class ActionStart(Action):
