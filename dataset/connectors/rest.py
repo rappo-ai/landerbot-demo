@@ -1,4 +1,5 @@
 import asyncio
+from datetime import datetime
 import inspect
 import json
 import logging
@@ -15,10 +16,12 @@ from rasa.core.channels.channel import (
 )
 import rasa.utils.endpoints
 
+from actions.utils.date import SERVER_TZINFO
 from actions.utils.json import get_json_key
 from actions.utils.livechat import (
     enable_livechat,
     is_livechat_enabled,
+    post_livechat_event,
     post_livechat_message,
     set_livechat_online_status,
 )
@@ -108,7 +111,7 @@ class RestInput(InputChannel):
         return req.json.get("input_channel") or self.name()
 
     def get_metadata(self, request: Request) -> Dict[Text, Any]:
-        return request.json
+        return request.json.get("metadata", {})
 
     async def handle_user_message(
         self,
@@ -183,6 +186,19 @@ class RestInput(InputChannel):
             is_restart = text == "/restart"
             is_start = text == "/start"
             is_command = text.startswith("/")
+
+            if is_command:
+                post_livechat_event(
+                    sender_id,
+                    {
+                        "category": "user",
+                        "action": "command",
+                        "label": text,
+                        "metadata": metadata,
+                        "ts": datetime.now(tz=SERVER_TZINFO).timestamp(),
+                    },
+                )
+
             if is_restart:
                 enable_livechat(user_id=sender_id, enabled=False)
                 await self.handle_user_message(
@@ -207,7 +223,11 @@ class RestInput(InputChannel):
             )
 
             is_notification_command = is_command and text not in ["/livechat_visible"]
-            do_notification = is_notification_command if is_livechat_mode else (not is_command or is_notification_command)
+            do_notification = (
+                is_notification_command
+                if is_livechat_mode
+                else (not is_command or is_notification_command)
+            )
 
             if do_notification:
                 notification_text = metadata.get("input_text") or metadata.get("text")

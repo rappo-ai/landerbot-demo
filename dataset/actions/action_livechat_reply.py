@@ -3,6 +3,7 @@ from typing import Any, Text, Dict, List
 from rasa_sdk import Action, Tracker
 from rasa_sdk.executor import CollectingDispatcher
 
+from actions.utils.json import get_json_key
 from actions.utils.livechat import post_livechat_message
 
 
@@ -17,8 +18,10 @@ class ActionLivechatReply(Action):
         domain: Dict[Text, Any],
     ) -> List[Dict[Text, Any]]:
 
-        user_message = tracker.latest_message.get("metadata")
-        message_text = user_message.get("input_text") or user_message.get("text")
+        message_metadata = get_json_key(tracker.latest_message, "metadata", {})
+        message_text = message_metadata.get("input_text") or message_metadata.get(
+            "text"
+        )
         user_id = tracker.sender_id
         post_livechat_message(
             user_id,

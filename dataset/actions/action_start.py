@@ -59,8 +59,10 @@ class ActionStart(Action):
         domain: Dict[Text, Any],
     ) -> List[Dict[Text, Any]]:
 
-        metadata = tracker.latest_message.get("metadata", {}).get("metadata", {})
-        _update_user_metadata(tracker.sender_id, metadata)
+        message_metadata = get_json_key(tracker.latest_message, "metadata", {})
+        user_id = tracker.sender_id
+
+        _update_user_metadata(user_id, message_metadata)
 
         old_events = tracker.events_after_latest_restart()
         old_events = [e for e in old_events if _is_valid_event(e)]

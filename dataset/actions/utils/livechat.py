@@ -1,4 +1,5 @@
 import logging
+from typing import Dict
 import requests
 
 from actions.utils.host import get_livechat_admin_url
@@ -56,6 +57,21 @@ def set_livechat_visibility(user_id, visible: bool):
             json={
                 "user_id": user_id,
                 "visible": visible,
+            },
+            timeout=5,
+        )
+    except Exception as e:
+        logger.error(e)
+
+
+def post_livechat_event(user_id, event: Dict):
+    try:
+        url = get_livechat_admin_url("/livechat/event")
+        response = requests.post(
+            url,
+            json={
+                "user_id": user_id,
+                "event": event,
             },
             timeout=5,
         )
