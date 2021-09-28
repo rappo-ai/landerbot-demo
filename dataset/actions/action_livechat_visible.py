@@ -19,7 +19,7 @@ class ActionLivechatVisible(Action):
     ) -> List[Dict[Text, Any]]:
 
         user_id = tracker.sender_id
-        message_metadata = get_json_key(tracker.latest_message, "metadata.metadata", {})
+        message_metadata = get_json_key(tracker.latest_message, "metadata", {})
         set_livechat_visibility(user_id, message_metadata.get("visible", False))
 
         return []
