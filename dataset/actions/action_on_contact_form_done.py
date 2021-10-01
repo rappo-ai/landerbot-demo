@@ -26,7 +26,7 @@ class ActionOnContactFormDone(Action):
             send_notification=False,
         )
         dispatcher.utter_message(
-            text="Thank you for reaching out! Please wait while we connect you to one of our staff. In case you don't hear from us, we will get back to you over email. Please type your query to begin 💬"
+            text="Thank you for reaching out! Unfortunately our team is currently offline. You can still type your query here and we will get back to you as soon as possible."
         )
         dispatcher.utter_message(
             json_message={"payload": "event", "data": {"name": "livechat_start"}}
